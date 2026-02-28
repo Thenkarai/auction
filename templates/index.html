@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - College Cricket Auction{% endblock %}
+
+{% block content %}
+<div class="text-center p-5 mb-5 glass-card rounded shadow">
+    <h1 class="display-4 fw-bold mb-3"><i class="fa-solid fa-gavel text-warning"></i> Welcome to the Auction</h1>
+    <p class="lead text-light opacity-75 mb-5">Premium Player Bidding System Dashboard</p>
+
+    <div class="row g-4 justify-content-center mt-4">
+        <div class="col-md-4">
+            <a href="/teams" class="text-decoration-none">
+                <div class="card bg-dark border-primary hover-shadow h-100 py-4 transition-transform text-white">
+                    <div class="card-body text-center">
+                        <i class="fa-solid fa-wallet fa-3x text-primary mb-3"></i>
+                        <h4 class="card-title fw-bold">Franchises</h4>
+                        <p class="card-text opacity-75">View team wallets, budgets, and squad compositions.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="/players" class="text-decoration-none">
+                <div class="card bg-dark border-success hover-shadow h-100 py-4 transition-transform text-white">
+                    <div class="card-body text-center">
+                        <i class="fa-solid fa-users fa-3x text-success mb-3"></i>
+                        <h4 class="card-title fw-bold">Auction Pool</h4>
+                        <p class="card-text opacity-75">Manage players, conduct bidding, and assign to teams.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="/add" class="text-decoration-none">
+                <div class="card bg-dark border-info hover-shadow h-100 py-4 transition-transform text-white">
+                    <div class="card-body text-center">
+                        <i class="fa-solid fa-user-plus fa-3x text-info mb-3"></i>
+                        <h4 class="card-title fw-bold">Register Player</h4>
+                        <p class="card-text opacity-75">Enroll new players into the auction database.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-shadow:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5) !important;
+        transform: translateY(-5px);
+    }
+
+    .transition-transform {
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}Auction Pool - College Cricket Auction{% endblock %}
+
+{% block content %}
+<!-- Players Table Macro -->
+{% macro render_players_table(filter_role=None) %}
+<div class="table-responsive mt-3">
+    <table class="align-middle custom-table">
+        <thead>
+            <tr>
+                <th>Player Name</th>
+                <th>Role</th>
+                <th>Credits</th>
+                <th>Base Price</th>
+                <th>Status</th>
+                <th>Sold To</th>
+                <th>Price</th>
+                <th class="text-center">Action</th>
+            </tr>
+        </thead>
+        <tbody id="playersTableBody">
+            {% set count = namespace(value=0) %}
+
+            {# Extract unique sets for the filtered players #}
+            {% set filtered_players = [] %}
+            {% for p in players %}
+            {% if not filter_role or p.role == filter_role %}
+            {% set _ = filtered_players.append(p) %}
+            {% endif %}
+            {% endfor %}
+
+            {% set unique_sets = [] %}
+            {% for p in filtered_players %}
+            {% if p.set_name not in unique_sets %}
+            {% set _ = unique_sets.append(p.set_name) %}
+            {% endif %}
+            {% endfor %}
+
+            {% for current_set in unique_sets %}
+            {# Group Header #}
+            <tr class="table-dark set-group-header" data-set-name="{{ current_set }}">
+                <td colspan="8" class="fw-bold fs-5 text-warning text-uppercase"><i class="fa-solid fa-list mx-2"></i>
+                    {{ current_set }}</td>
+            </tr>
+
+            {# Players for this set #}
+            {% for p in filtered_players %}
+            {% if p.set_name == current_set %}
+            {% set count.value = count.value + 1 %}
+            <tr class="player-row
+                {% if p.status == 'Sold' %}table-success-custom
+                {% elif p.status == 'Unsold' %}table-danger-custom
+                {% endif %}
+            " data-set-name="{{ p.set_name }}">
+                <td class="fw-bold fs-5 player-name">{{ p.name }}</td>
+                <td class="player-role"><span class="badge bg-secondary rounded-pill px-3">{{ p.role }}</span></td>
+                <td><span class="badge bg-warning text-dark"><i class="fa-solid fa-star"></i> {{ p.credits or '0'
+                        }}</span></td>
+                <td class="fw-bold fs-5 player-base-price">{{ p.base_price }}</td>
+                <td>
+                    {% if p.status == 'Sold' %}
+                    <span class="badge bg-success"><i class="fa-solid fa-check-circle"></i> Sold</span>
+                    {% elif p.status == 'Unsold' %}
+                    <span class="badge bg-danger"><i class="fa-solid fa-times-circle"></i> Unsold</span>
+                    {% else %}
+                    <span class="badge bg-info text-dark"><i class="fa-solid fa-hourglass-half"></i> Available</span>
+                    {% endif %}
+                </td>
+                <td class="fw-bold" style="color: #00F0FF;">{{ p.team.name if p.team else '-' }}</td>
+                <td class="fw-bold text-success">{{ p.price | format_inr if p.price else '-' }}</td>
+                <td class="text-center">
+                    <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap">
+                        {% if p.status == 'Available' %}
+                        <form action="/sell/{{ p.id }}" method="post"
+                            class="d-flex align-items-center justify-content-center gap-2 m-0 flex-wrap">
+                            <div class="input-group input-group-sm action-group shadow-sm">
+                                <select name="team" class="form-select bg-dark text-light border-secondary" required
+                                    style="max-width: 120px;">
+                                    <option value="" disabled selected>Select</option>
+                                    {% for t in teams %}
+                                    <option value="{{ t.name }}">{{ t.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <input type="number" name="price" placeholder="Amount (INR)"
+                                    class="form-control bg-dark text-light border-secondary" required
+                                    style="max-width: 140px;">
+                                <button type="submit" class="btn btn-success fw-bold px-3 sell-btn"><i
+                                        class="fa-solid fa-gavel"></i> Sell</button>
+                            </div>
+                        </form>
+                        <a href="/unsold/{{ p.id }}" class="btn btn-outline-warning btn-sm fw-bold px-3"><i
+                                class="fa-solid fa-ban"></i> Unsold</a>
+                        {% else %}
+                        <div class="d-flex flex-column align-items-center gap-1 w-100">
+                            <span class="text-muted small fst-italic"><i class="fa-solid fa-lock"></i> Auction
+                                Closed</span>
+                            <form action="/undo/{{ p.id }}" method="post" class="m-0 mt-1 w-100">
+                                <button type="submit" class="btn btn-outline-danger btn-sm fw-bold w-100"
+                                    title="Undo Auction Action"
+                                    style="border-radius: 8px; box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);">
+                                    <i class="fa-solid fa-rotate-left"></i> Undo / Redo
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+
+                        <button type="button" class="btn btn-outline-danger btn-sm" title="Delete Player"
+                            onclick="fetch('/delete/{{ p.id }}',{method:'POST'}).then(()=>location.reload())">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+            {% endfor %}
+
+            {% if count.value == 0 %}
+            <tr>
+                <td colspan="7" class="text-center text-muted py-5">
+                    <i class="fa-solid fa-box-open fa-3x mb-3 text-secondary"></i>
+                    <h5>No players found in this category</h5>
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endmacro %}
+
+<!-- Auction Pool — Premium Redesign -->
+<div class="auction-pool-container mb-5">
+    <!-- Gradient Header Banner -->
+    <div class="auction-header text-center">
+        <div class="auction-header-inner">
+            <h2 class="auction-title"><i class="fa-solid fa-fire"></i> AUCTION POOL</h2>
+            <p class="auction-subtitle">Live Bidding Dashboard &bull; IPL Mega Auction</p>
+        </div>
+    </div>
+
+    <!-- Stats Dashboard -->
+    {% set total = players|length %}
+    {% set sold = players|selectattr('status', 'equalto', 'Sold')|list|length %}
+    {% set unsold = players|selectattr('status', 'equalto', 'Unsold')|list|length %}
+    {% set available = players|selectattr('status', 'equalto', 'Available')|list|length %}
+    <div class="stats-dashboard">
+        <div class="stat-card stat-total">
+            <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+            <div class="stat-value">{{ total }}</div>
+            <div class="stat-label">Total Players</div>
+        </div>
+        <div class="stat-card stat-sold">
+            <div class="stat-icon"><i class="fa-solid fa-gavel"></i></div>
+            <div class="stat-value">{{ sold }}</div>
+            <div class="stat-label">Sold</div>
+        </div>
+        <div class="stat-card stat-unsold">
+            <div class="stat-icon"><i class="fa-solid fa-ban"></i></div>
+            <div class="stat-value">{{ unsold }}</div>
+            <div class="stat-label">Unsold</div>
+        </div>
+        <div class="stat-card stat-available">
+            <div class="stat-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+            <div class="stat-value">{{ available }}</div>
+            <div class="stat-label">Available</div>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="glass-card p-4 auction-body">
+        <div class="search-container mb-4">
+            <div class="search-input-wrapper">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="searchInput" class="premium-search"
+                    placeholder="Search by Player, Set, or Role...">
+            </div>
+        </div>
+
+        <!-- Pill Tabs -->
+        <ul class="nav auction-pill-tabs mb-4 justify-content-center flex-wrap gap-2" id="auctionTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="pill-tab active" id="all-tab" data-bs-toggle="tab" data-bs-target="#tab-all"
+                    type="button" role="tab"><i class="fa-solid fa-layer-group"></i> All</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="pill-tab" id="batsman-tab" data-bs-toggle="tab" data-bs-target="#tab-batsman"
+                    type="button" role="tab"><i class="fa-solid fa-baseball-bat-ball"></i> Batsmen</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="pill-tab" id="bowler-tab" data-bs-toggle="tab" data-bs-target="#tab-bowler" type="button"
+                    role="tab"><i class="fa-solid fa-baseball"></i> Bowlers</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="pill-tab" id="allrounder-tab" data-bs-toggle="tab" data-bs-target="#tab-allrounder"
+                    type="button" role="tab"><i class="fa-solid fa-bolt"></i> Allrounders</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="pill-tab" id="wk-tab" data-bs-toggle="tab" data-bs-target="#tab-wk" type="button"
+                    role="tab"><i class="fa-solid fa-hands"></i> Keepers</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="auctionTabsContent">
+            <div class="tab-pane fade show active" id="tab-all" role="tabpanel">
+                {{ render_players_table() }}
+            </div>
+            <div class="tab-pane fade" id="tab-batsman" role="tabpanel">
+                {{ render_players_table('Batsman') }}
+            </div>
+            <div class="tab-pane fade" id="tab-bowler" role="tabpanel">
+                {{ render_players_table('Bowler') }}
+            </div>
+            <div class="tab-pane fade" id="tab-allrounder" role="tabpanel">
+                {{ render_players_table('Allrounder') }}
+            </div>
+            <div class="tab-pane fade" id="tab-wk" role="tabpanel">
+                {{ render_players_table('Wicketkeeper') }}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('searchInput');
+        const tableRows = document.querySelectorAll('.player-row');
+        const headerRows = document.querySelectorAll('.set-group-header');
+
+        searchInput.addEventListener('keyup', function (e) {
+            const term = e.target.value.toLowerCase();
+
+            // Track which sets have visible rows
+            let visibleSets = new Set();
+
+            tableRows.forEach(row => {
+                const name = row.querySelector('.player-name').textContent.toLowerCase();
+                const role = row.querySelector('.player-role').textContent.toLowerCase();
+                const setName = row.getAttribute('data-set-name').toLowerCase();
+
+                if (name.includes(term) || role.includes(term) || setName.includes(term)) {
+                    row.style.display = '';
+                    visibleSets.add(row.getAttribute('data-set-name'));
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Toggle category header visibility
+            headerRows.forEach(header => {
+                const setName = header.getAttribute('data-set-name');
+                if (visibleSets.has(setName) || setName.toLowerCase().includes(term)) {
+                    header.style.display = '';
+                    // if header searched explicitly, show its children? We just hide/show header for now
+                } else {
+                    header.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

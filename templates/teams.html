@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Franchises - College Cricket Auction{% endblock %}
+
+{% block content %}
+<div class="row mb-5 g-4">
+    <!-- Teams Budget Cards -->
+    <div class="col-12">
+        <div class="glass-card p-4 h-100">
+            <h4 class="section-title mb-4"><i class="fa-solid fa-wallet text-success"></i> Franchise Wallets</h4>
+            <div class="row g-3">
+                {% for t, data in teams.items() %}
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="team-card p-4 h-100 text-center team-card-inner" role="button" data-bs-toggle="modal"
+                        data-bs-target="#modal-{{ loop.index }}" style="cursor: pointer;">
+                        <div class="team-icon-wrapper mb-3">
+                            <i class="fa-solid fa-shield-halved fa-2x"
+                                style="color: var(--accent-blue); filter: drop-shadow(0 0 8px var(--accent-glow));"></i>
+                        </div>
+                        <h5 class="team-name fw-bold mb-2">{{ t }}</h5>
+                        <div class="team-budget-display mt-2 mb-3">
+                            <span class="budget-label text-uppercase"
+                                style="font-size: 0.7rem; letter-spacing: 2px; color: #64748b;">Remaining Purse</span>
+                            <h4 class="fw-bold mt-1 mb-0"
+                                style="color: var(--accent-gold); text-shadow: 0 0 12px rgba(255, 215, 0, 0.4);">{{
+                                data.budget | format_inr }}</h4>
+                        </div>
+                        <div class="team-squad-count mb-3">
+                            {% set squad_count = [] %}
+                            {% for p in players if p.team_id == data.obj.id %}
+                            {% set _ = squad_count.append(1) %}
+                            {% endfor %}
+                            <span class="badge rounded-pill"
+                                style="background: rgba(0, 240, 255, 0.15); color: var(--accent-blue); border: 1px solid rgba(0, 240, 255, 0.3); padding: 0.4rem 0.8rem;">
+                                <i class="fa-solid fa-users"></i> {{ squad_count|length }} Player{{ 's' if
+                                squad_count|length != 1 }}
+                            </span>
+                        </div>
+                        <span class="btn btn-sm btn-outline-info w-100 mt-auto"
+                            style="border-radius: 20px; font-size: 0.85rem;">
+                            <i class="fa-solid fa-eye"></i> View Squad
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals for Team Squads -->
+{% for t, data in teams.items() %}
+<div class="modal fade custom-modal" id="modal-{{ loop.index }}" tabindex="-1"
+    aria-labelledby="modalLabel{{ loop.index }}" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content bg-dark border-secondary">
+            <div class="modal-header border-bottom border-secondary" style="background: rgba(15, 23, 42, 0.9);">
+                <h5 class="modal-title fw-bold text-light" id="modalLabel{{ loop.index }}"><i
+                        class="fa-solid fa-shield"></i> {{ t }} Squad</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-dark text-light p-4">
+                <div class="budget-banner mb-4 p-3 rounded text-center border border-primary"
+                    style="background: rgba(59, 130, 246, 0.1);">
+                    <h6 class="text-info text-uppercase letter-spacing-1 mb-1">Available Purse</h6>
+                    <h3 class="fw-bold text-white mb-0">{{ data.budget | format_inr }}</h3>
+                </div>
+
+                <div class="squad-categories">
+                    {% set roles = [('Batsman', 'fa-baseball-bat-ball', 'primary'), ('Bowler', 'fa-baseball',
+                    'success'), ('Allrounder', 'fa-bolt', 'warning'), ('Wicketkeeper', 'fa-hands', 'info')] %}
+
+                    <div class="row g-4">
+                        {% for role_name, icon, color in roles %}
+                        <div class="col-md-6">
+                            <div class="role-section p-3 rounded"
+                                style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.05); height: 100%;">
+                                <h6 class="border-bottom border-secondary pb-2 mb-3 text-{{ color }}"><i
+                                        class="fa-solid {{ icon }}"></i> {{ role_name }}s</h6>
+                                {% set role_count = namespace(value=0) %}
+                                <div class="d-flex flex-column gap-2">
+                                    {% for p in players if p.status == 'Sold' and (p.team_id == data.obj.id) and
+                                    p.role
+                                    == role_name %}
+                                    {% set role_count.value = role_count.value + 1 %}
+                                    <div
+                                        class="d-flex justify-content-between align-items-center bg-black bg-opacity-25 p-2 rounded">
+                                        <div>
+                                            <span class="fw-bold d-block">{{ p.name }}</span>
+                                            <small class="text-warning"><i
+                                                    class="fa-solid fa-star text-warning small"></i> {{ p.credits or
+                                                '0'
+                                                }} pts</small>
+                                        </div>
+                                        <span class="badge bg-success opacity-75">{{ p.price | format_inr }}</span>
+                                    </div>
+                                    {% endfor %}
+                                    {% if role_count.value == 0 %}
+                                    <div class="text-center py-3">
+                                        <span class="badge border border-warning text-warning bg-dark p-2"
+                                            style="font-size: 0.85rem; box-shadow: 0 0 10px rgba(255, 193, 7, 0.2);">
+                                            <i class="fa-solid fa-hourglass-start"></i> Awaiting Bids...
+                                        </span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

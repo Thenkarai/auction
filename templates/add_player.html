@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Register Player - College Cricket Auction{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="glass-card p-4 add-player-card">
+            <h4 class="section-title mb-4"><i class="fa-solid fa-user-plus text-info"></i> Register New Player</h4>
+            <form action="/add" method="post" class="needs-validation">
+                <div class="mb-4 custom-input">
+                    <label class="form-label text-light small"><i class="fa-solid fa-user"></i> Player Name</label>
+                    <input type="text" name="name"
+                        class="form-control form-control-lg bg-dark text-light border-secondary"
+                        placeholder="e.g. MS Dhoni" required>
+                </div>
+
+                <div class="row">
+                    <div class="col-6 mb-4 custom-input">
+                        <label class="form-label text-light small"><i class="fa-solid fa-list"></i> Set Name</label>
+                        <select name="set_name" class="form-select form-select-lg bg-dark text-light border-secondary">
+                            <option>Marquee</option>
+                            <option>Capped Batter</option>
+                            <option>Capped Bowler</option>
+                            <option>Capped All-Rounder</option>
+                            <option>Capped WK</option>
+                            <option>Uncapped Batter</option>
+                            <option>Uncapped Bowler</option>
+                            <option>Uncapped All-Rounder</option>
+                            <option>Uncapped WK</option>
+                        </select>
+                    </div>
+
+                    <div class="col-6 mb-4 custom-input">
+                        <label class="form-label text-light small"><i class="fa-solid fa-baseball-bat-ball"></i>
+                            Role</label>
+                        <select name="role" class="form-select form-select-lg bg-dark text-light border-secondary">
+                            <option>Batsman</option>
+                            <option>Bowler</option>
+                            <option>All-Rounder</option>
+                            <option>WK/Batter</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-6 mb-4 custom-input">
+                        <label class="form-label text-light small"><i class="fa-solid fa-star"></i> Credits</label>
+                        <input type="number" step="0.5" name="credits"
+                            class="form-control form-control-lg bg-dark text-light border-secondary"
+                            placeholder="e.g. 9.5" required>
+                    </div>
+
+                    <div class="col-6 mb-4 custom-input">
+                        <label class="form-label text-light small"><i class="fa-solid fa-indian-rupee-sign"></i> Base
+                            Price</label>
+                        <select name="base_price"
+                            class="form-select form-select-lg bg-dark text-light border-secondary">
+                            <option>2.00 Crore</option>
+                            <option>1.5 Crore</option>
+                            <option>1.0 Crore</option>
+                            <option>75 Lakhs</option>
+                            <option>50 Lakhs</option>
+                            <option>40 Lakhs</option>
+                            <option>30 Lakhs</option>
+                            <option>25 Lakhs</option>
+                            <option>20 Lakhs</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 btn-lg mt-3 fw-bold text-uppercase add-btn"><i
+                        class="fa-solid fa-plus"></i> Add Player</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
