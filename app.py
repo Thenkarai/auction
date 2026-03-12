@@ -165,18 +165,25 @@ def undo_player(id):
 @app.route("/delete/<int:id>", methods=["POST"])
 def delete_player(id):
     player = Player.query.get_or_404(id)
+    player_name = player.name
 
     # If the player was sold, refund the team's budget
     if player.status == "Sold" and player.team_id:
         team = Team.query.get(player.team_id)
         if team:
-            team.budget += player.price
-            flash(f"Refunded {format_inr(player.price)} to {team.name} for removing {player.name}.", "info")
+            refund_amount = float(player.price or 0)
+            team.budget += refund_amount
+            print(f"DEBUG: Refunding {refund_amount} to {team.name} for player {player_name}")
+            flash(f"Refunded {format_inr(refund_amount)} to {team.name} for removing {player_name}.", "info")
+        else:
+            print(f"DEBUG: Team with ID {player.team_id} not found for player {player_name}")
+    else:
+        print(f"DEBUG: Player {player_name} status is {player.status}, team_id is {player.team_id}")
 
     db.session.delete(player)
     db.session.commit()
 
-    flash(f"Player {player.name} has been removed from the auction pool.", "success")
+    flash(f"Player {player_name} has been removed from the auction pool.", "success")
     return redirect("/players")
 
 # ── Player seed data (auto-loaded on Vercel cold starts) ──
